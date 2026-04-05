@@ -20,3 +20,8 @@ variable "cloudflare_account_id" {
   description = "Cloudflare account ID — found in the Cloudflare dashboard URL or Overview tab, bottom-right under API section"
   sensitive   = true
 }
+
+variable "fly_app_hostname" {
+  type        = string
+  description = "Fly.io app hostname used as the CNAME target for pfm-go-api.zambone.dev (e.g. pfm-go-api.fly.dev)"
+}
