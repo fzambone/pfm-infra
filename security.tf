@@ -39,3 +39,36 @@ resource "cloudflare_zone_setting" "min_tls_version" {
   setting_id = "min_tls_version"
   value      = "1.2"
 }
+
+# Browser Integrity Check: evaluates HTTP headers for common patterns used
+# by abusive bots and crawlers. When a request looks suspicious (e.g. missing
+# or spoofed User-Agent), Cloudflare blocks it before it reaches the origin.
+# This is a lightweight, free-tier check — different from Bot Fight Mode,
+# which uses JavaScript challenges.
+resource "cloudflare_zone_setting" "browser_check" {
+  zone_id    = var.cloudflare_zone_id
+  setting_id = "browser_check"
+  value      = "on"
+}
+
+# HSTS (HTTP Strict Transport Security): instructs browsers to always use
+# HTTPS for this domain. Once a browser sees this header, it will refuse to
+# connect over plain HTTP for max_age seconds — even if the user types
+# http://. This prevents SSL stripping attacks.
+#
+# max_age = 15768000 (6 months) is the minimum recommended by Cloudflare.
+# include_subdomains = true applies HSTS to all subdomains of zambone.dev.
+# nosniff = true adds X-Content-Type-Options: nosniff to prevent MIME sniffing.
+resource "cloudflare_zone_setting" "security_header" {
+  zone_id    = var.cloudflare_zone_id
+  setting_id = "security_header"
+  value = {
+    strict_transport_security = {
+      enabled            = true
+      max_age            = 15768000
+      include_subdomains = true
+      preload            = false
+      nosniff            = true
+    }
+  }
+}
