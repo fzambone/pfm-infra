@@ -8,15 +8,17 @@
 # so Terraform owns them — this prevents drift if someone changes them
 # in the dashboard, because `terraform plan` would detect the difference.
 
-# SSL/TLS mode: "full" encrypts traffic between the visitor and Cloudflare AND
-# between Cloudflare and the origin (Fly.io). "full" does NOT validate the
-# origin cert — that's "strict", which requires a valid cert on Fly.io.
-# We start with "full" and upgrade to "strict" in issue #4 after the Fly.io
-# cert is provisioned.
+# SSL/TLS mode: "strict" encrypts AND validates the full path:
+#   visitor → Cloudflare (edge cert) → Fly.io (Let's Encrypt cert)
+# Cloudflare verifies the origin cert is valid and matches the hostname.
+# This prevents MITM attacks between Cloudflare and the origin.
+#
+# Upgraded from "full" to "strict" in issue #4 after confirming the
+# Fly.io Let's Encrypt cert for pfm-go-api.zambone.dev is active.
 resource "cloudflare_zone_setting" "ssl_mode" {
   zone_id    = var.cloudflare_zone_id
   setting_id = "ssl"
-  value      = "full"
+  value      = "strict"
 }
 
 # Always Use HTTPS: redirects all HTTP requests to HTTPS via a 301 redirect.
